@@ -1,0 +1,66 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+      target: development
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Override for Docker networking — "mcp" is the container hostname
+      - MCP_SERVER_URL=http://mcp:8001
+      - DATABASE_URL=postgresql+asyncpg://reviewflow:reviewflow@postgres:5432/reviewflow
+      - QDRANT_HOST=qdrant
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+      mcp:
+        condition: service_started
+
+  mcp:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.mcp
+    ports:
+      - "8001:8001"
+    env_file:
+      - .env
+    environment:
+      - QDRANT_HOST=qdrant
+    depends_on:
+      qdrant:
+        condition: service_started
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: reviewflow
+      POSTGRES_PASSWORD: reviewflow
+      POSTGRES_DB: reviewflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reviewflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+volumes:
+  postgres_data:
+  qdrant_data:

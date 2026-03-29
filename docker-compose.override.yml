@@ -1,0 +1,10 @@
+# Local development overrides — automatically merged with docker-compose.yml
+# This file is NOT used in CI/CD or production.
+
+services:
+  api:
+    environment:
+      - DEBUG=true
+    # Mount source for hot-reload
+    volumes:
+      - .:/app
