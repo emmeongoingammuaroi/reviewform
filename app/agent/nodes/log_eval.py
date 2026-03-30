@@ -12,9 +12,9 @@ This node delegates to app.eval.logger — the eval framework owns persistence.
 Scores are assigned automatically via scorer.py or manually via POST /eval/score.
 """
 
+from app.agent.state import ReviewState
 from app.core.logging import get_logger
 from app.eval.logger import log_review_eval
-from app.agent.state import ReviewState
 
 logger = get_logger(__name__)
 

@@ -20,9 +20,7 @@ class InputType(str, Enum):
 
 
 # Matches "owner/repo/pull/123" or full GitHub URL
-_PR_REF_PATTERN = re.compile(
-    r"^(?:https?://github\.com/)?[\w.-]+/[\w.-]+/pull/\d+/?$"
-)
+_PR_REF_PATTERN = re.compile(r"^(?:https?://github\.com/)?[\w.-]+/[\w.-]+/pull/\d+/?$")
 
 
 # --- Requests ---

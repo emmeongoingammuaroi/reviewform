@@ -31,11 +31,11 @@ import asyncio
 from mcp.server import Server
 from mcp.server.sse import SseServerTransport
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent
+from mcp.types import TextContent, Tool
 from starlette.applications import Starlette
 from starlette.routing import Mount, Route
 
-from app.core.logging import setup_logging, get_logger
+from app.core.logging import get_logger, setup_logging
 from mcp_server.tools import github, qdrant_search
 
 logger = get_logger(__name__)
@@ -72,6 +72,7 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 # SSE transport (HTTP-based) — used by the LangGraph agent
 # ---------------------------------------------------------------------------
 
+
 def create_sse_app() -> Starlette:
     """Create a Starlette app that serves the MCP server over SSE.
 
@@ -92,12 +93,11 @@ def create_sse_app() -> Starlette:
         async with sse_transport.connect_sse(
             request.scope, request.receive, request._send
         ) as streams:
-            await server.run(
-                streams[0], streams[1], server.create_initialization_options()
-            )
+            await server.run(streams[0], streams[1], server.create_initialization_options())
 
     async def handle_health(request):
         from starlette.responses import JSONResponse
+
         return JSONResponse({"status": "healthy", "server": "reviewflow-mcp"})
 
     return Starlette(
@@ -113,6 +113,7 @@ def create_sse_app() -> Starlette:
 # stdio transport — used by Claude Desktop and other stdio MCP clients
 # ---------------------------------------------------------------------------
 
+
 async def run_stdio_server() -> None:
     """Run the MCP server over stdio (for Claude Desktop compatibility)."""
     logger.info("mcp.stdio_server_starting")
@@ -124,6 +125,7 @@ async def run_stdio_server() -> None:
 # CLI entrypoint
 # ---------------------------------------------------------------------------
 
+
 def main() -> None:
     """CLI entrypoint — supports both SSE and stdio transports.
 
@@ -134,11 +136,15 @@ def main() -> None:
     """
     parser = argparse.ArgumentParser(description="ReviewFlow MCP Server")
     parser.add_argument(
-        "--transport", choices=["sse", "stdio"], default="sse",
+        "--transport",
+        choices=["sse", "stdio"],
+        default="sse",
         help="Transport protocol (default: sse)",
     )
     parser.add_argument(
-        "--port", type=int, default=8001,
+        "--port",
+        type=int,
+        default=8001,
         help="Port for SSE transport (default: 8001)",
     )
     args = parser.parse_args()
@@ -149,6 +155,7 @@ def main() -> None:
         asyncio.run(run_stdio_server())
     else:
         import uvicorn
+
         logger.info("mcp.sse_server_starting", port=args.port)
         app = create_sse_app()
         uvicorn.run(app, host="0.0.0.0", port=args.port)

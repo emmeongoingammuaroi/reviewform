@@ -4,8 +4,8 @@ Takes the classified issues and produces a clean, structured summary.
 This is a pure data transformation — no LLM call, no external service.
 """
 
-from app.core.logging import get_logger
 from app.agent.state import ReviewState
+from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

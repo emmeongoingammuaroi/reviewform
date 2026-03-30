@@ -1,9 +1,8 @@
 """Unit tests for the graph builder and conditional edges."""
 
-import pytest
+from langgraph.graph import END
 
 from app.agent.builder import should_continue_after_human
-from langgraph.graph import END
 
 
 class TestConditionalEdges:

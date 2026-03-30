@@ -8,15 +8,15 @@ the connection string in one place (.env file).
 import asyncio
 from logging.config import fileConfig
 
-from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from alembic import context
 from app.core.config import settings
 from app.db.base import Base
 
 # Import all models so Alembic can detect them for --autogenerate
-from app.db.models import ReviewSession, EvalLog  # noqa: F401
+from app.db.models import EvalLog, ReviewSession  # noqa: F401
 
 # Alembic Config object
 config = context.config

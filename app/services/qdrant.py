@@ -1,8 +1,7 @@
 """Qdrant service — vector search for coding standards (RAG retrieval)."""
 
-from qdrant_client import AsyncQdrantClient
-
 from langchain_openai import OpenAIEmbeddings
+from qdrant_client import AsyncQdrantClient
 
 from app.core.config import settings
 from app.core.logging import get_logger

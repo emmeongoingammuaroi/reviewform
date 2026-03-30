@@ -9,13 +9,13 @@ This module answers the questions an eval framework needs to answer:
 All queries are async and return dicts ready for API serialization.
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models import EvalLog
 from app.core.logging import get_logger
+from app.db.models import EvalLog
 
 logger = get_logger(__name__)
 
@@ -55,7 +55,7 @@ async def score_trend(
     Returns time series: [{date, avg_score, avg_latency_ms, count}, ...]
     Tracks whether model quality is improving or regressing.
     """
-    since = datetime.now(timezone.utc) - timedelta(days=days)
+    since = datetime.now(UTC) - timedelta(days=days)
 
     # Bucket by day or week
     if bucket == "week":
@@ -100,18 +100,14 @@ async def score_distribution(db: AsyncSession) -> dict:
     }
     """
     scored_stmt = select(
-        func.count(
-            case((EvalLog.score >= 0.8, EvalLog.id))
-        ).label("excellent"),
-        func.count(
-            case(((EvalLog.score >= 0.6) & (EvalLog.score < 0.8), EvalLog.id))
-        ).label("good"),
-        func.count(
-            case(((EvalLog.score >= 0.4) & (EvalLog.score < 0.6), EvalLog.id))
-        ).label("fair"),
-        func.count(
-            case(((EvalLog.score < 0.4), EvalLog.id))
-        ).label("poor"),
+        func.count(case((EvalLog.score >= 0.8, EvalLog.id))).label("excellent"),
+        func.count(case(((EvalLog.score >= 0.6) & (EvalLog.score < 0.8), EvalLog.id))).label(
+            "good"
+        ),
+        func.count(case(((EvalLog.score >= 0.4) & (EvalLog.score < 0.6), EvalLog.id))).label(
+            "fair"
+        ),
+        func.count(case(((EvalLog.score < 0.4), EvalLog.id))).label("poor"),
     ).where(EvalLog.score.isnot(None))
 
     unscored_stmt = select(func.count(EvalLog.id)).where(EvalLog.score.is_(None))
@@ -179,9 +175,8 @@ async def regression_check(
     recent_avg = sum(recent_scores) / len(recent_scores)
 
     # Baseline: everything except the recent window
-    baseline_stmt = (
-        select(func.avg(EvalLog.score), func.count(EvalLog.id))
-        .where(EvalLog.score.isnot(None))
+    baseline_stmt = select(func.avg(EvalLog.score), func.count(EvalLog.id)).where(
+        EvalLog.score.isnot(None)
     )
     baseline_result = await db.execute(baseline_stmt)
     baseline_row = baseline_result.one()

@@ -12,9 +12,9 @@ The dependency flow is:
     this node → mcp_client → (SSE) → mcp_server → services/github.py
 """
 
-from app.core.logging import get_logger
-from app.agent.state import ReviewState
 from app.agent import mcp_client
+from app.agent.state import ReviewState
+from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

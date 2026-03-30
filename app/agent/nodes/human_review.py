@@ -16,8 +16,8 @@ For now, this node simply marks the state as awaiting human input.
 The actual interrupt/resume is handled by the graph builder.
 """
 
-from app.core.logging import get_logger
 from app.agent.state import ReviewState
+from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

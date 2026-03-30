@@ -4,11 +4,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from app.core.middleware import RequestIDMiddleware
 from app.api.routes import auth, eval, review
 from app.core.config import settings
-from app.core.logging import setup_logging, get_logger
-from app.db.base import engine, Base
+from app.core.logging import get_logger, setup_logging
+from app.core.middleware import RequestIDMiddleware
+from app.db.base import Base, engine
 
 logger = get_logger(__name__)
 

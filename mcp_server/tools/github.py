@@ -8,12 +8,10 @@ from mcp.types import TextContent
 
 from app.services.github import fetch_pr_diff
 
-
 TOOL_DEFINITION = {
     "name": "fetch_github_pr_diff",
     "description": (
-        "Fetch the diff of a GitHub Pull Request. "
-        "Input: PR reference like 'owner/repo/pull/123'."
+        "Fetch the diff of a GitHub Pull Request. Input: PR reference like 'owner/repo/pull/123'."
     ),
     "inputSchema": {
         "type": "object",

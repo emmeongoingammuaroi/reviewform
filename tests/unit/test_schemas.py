@@ -3,8 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.api.schemas.review import ReviewRequest, InputType, HumanFeedback, EvalScoreRequest
-
+from app.api.schemas.review import EvalScoreRequest, InputType, ReviewRequest
 
 # ---------------------------------------------------------------------------
 # ReviewRequest validation
@@ -64,19 +63,13 @@ class TestReviewRequest:
 
 class TestEvalScoreRequest:
     def test_valid_score(self):
-        req = EvalScoreRequest(
-            eval_id="550e8400-e29b-41d4-a716-446655440000", score=0.85
-        )
+        req = EvalScoreRequest(eval_id="550e8400-e29b-41d4-a716-446655440000", score=0.85)
         assert req.score == 0.85
 
     def test_score_too_high(self):
         with pytest.raises(ValidationError):
-            EvalScoreRequest(
-                eval_id="550e8400-e29b-41d4-a716-446655440000", score=1.5
-            )
+            EvalScoreRequest(eval_id="550e8400-e29b-41d4-a716-446655440000", score=1.5)
 
     def test_score_too_low(self):
         with pytest.raises(ValidationError):
-            EvalScoreRequest(
-                eval_id="550e8400-e29b-41d4-a716-446655440000", score=-0.1
-            )
+            EvalScoreRequest(eval_id="550e8400-e29b-41d4-a716-446655440000", score=-0.1)

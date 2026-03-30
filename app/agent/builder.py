@@ -26,16 +26,16 @@ IMPORTANT — Dependency flow:
     NOT: agent nodes -> services/  (that would bypass MCP entirely)
 """
 
-from langgraph.graph import END, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, StateGraph
 
-from app.agent.state import ReviewState
 from app.agent.nodes.fetch_diff import fetch_diff
-from app.agent.nodes.retrieve_standards import retrieve_standards
-from app.agent.nodes.review_code import review_code
 from app.agent.nodes.format_response import format_response
 from app.agent.nodes.human_review import human_review
 from app.agent.nodes.log_eval import log_eval
+from app.agent.nodes.retrieve_standards import retrieve_standards
+from app.agent.nodes.review_code import review_code
+from app.agent.state import ReviewState
 
 
 def should_continue_after_human(state: ReviewState) -> str:

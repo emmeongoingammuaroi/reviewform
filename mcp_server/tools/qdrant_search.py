@@ -8,7 +8,6 @@ from mcp.types import TextContent
 
 from app.services.qdrant import search_standards
 
-
 TOOL_DEFINITION = {
     "name": "search_coding_standards",
     "description": (

@@ -1,6 +1,6 @@
 """Auth routes — simple JWT token generation for development."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter
 from jose import jwt
@@ -27,7 +27,7 @@ async def create_token(request: TokenRequest):
 
     In production, you'd integrate with OAuth2 / SSO instead.
     """
-    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
+    expire = datetime.now(UTC) + timedelta(minutes=settings.jwt_expire_minutes)
     payload = {
         "sub": request.user_id,
         "email": request.email,

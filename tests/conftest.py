@@ -10,7 +10,7 @@ Usage in tests:
         response = await client.post("/api/v1/reviews/", headers=auth_headers, ...)
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -19,7 +19,6 @@ from jose import jwt
 
 from app.core.config import settings
 from app.main import app
-
 
 # ---------------------------------------------------------------------------
 # Auth fixtures
@@ -38,7 +37,7 @@ def auth_token(test_user: dict) -> str:
     payload = {
         "sub": test_user["user_id"],
         "email": test_user["email"],
-        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+        "exp": datetime.now(UTC) + timedelta(hours=1),
     }
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 

@@ -89,9 +89,7 @@ async def search_coding_standards(query: str, limit: int = 5) -> list[str]:
     Returns:
         List of relevant coding standard texts.
     """
-    result_text = await call_tool(
-        "search_coding_standards", {"query": query, "limit": limit}
-    )
+    result_text = await call_tool("search_coding_standards", {"query": query, "limit": limit})
 
     if result_text == "No matching standards found.":
         return []
