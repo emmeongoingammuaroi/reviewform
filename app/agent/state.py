@@ -14,7 +14,7 @@ but here the "context" is the evolving review analysis.
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import Any, TypedDict
 
 
 class ReviewIssue(TypedDict):
@@ -47,7 +47,7 @@ class ReviewState(TypedDict, total=False):
 
     # --- After fetch_diff ---
     code: str  # the actual code to review (PR diff or raw snippet)
-    pr_metadata: dict | None  # PR URL, etc. if from GitHub
+    pr_metadata: dict[str, Any] | None  # PR URL, etc. if from GitHub
 
     # --- After retrieve_standards ---
     standards: list[str]  # relevant coding standard chunks from Qdrant (via MCP)

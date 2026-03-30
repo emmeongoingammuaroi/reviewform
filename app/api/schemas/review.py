@@ -9,12 +9,12 @@ from __future__ import annotations
 import re
 import uuid
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field, model_validator
 
 
-class InputType(str, Enum):
+class InputType(StrEnum):
     SNIPPET = "snippet"
     GITHUB_PR = "github_pr"
 

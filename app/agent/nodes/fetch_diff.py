@@ -12,6 +12,8 @@ The dependency flow is:
     this node → mcp_client → (SSE) → mcp_server → services/github.py
 """
 
+from typing import Any
+
 from app.agent import mcp_client
 from app.agent.state import ReviewState
 from app.core.logging import get_logger
@@ -19,7 +21,7 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 
-async def fetch_diff(state: ReviewState) -> dict:
+async def fetch_diff(state: ReviewState) -> dict[str, Any]:
     """Fetch code from GitHub PR (via MCP) or pass through raw snippet.
 
     Returns a partial state update with 'code' and 'pr_metadata'.

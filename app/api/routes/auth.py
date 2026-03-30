@@ -22,7 +22,7 @@ class TokenResponse(BaseModel):
 
 
 @router.post("/token", response_model=TokenResponse)
-async def create_token(request: TokenRequest):
+async def create_token(request: TokenRequest) -> TokenResponse:
     """Generate a JWT token for development/testing.
 
     In production, you'd integrate with OAuth2 / SSO instead.

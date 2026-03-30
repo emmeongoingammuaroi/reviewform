@@ -163,7 +163,7 @@ async def score_llm_judge(
     """
     llm = ChatOpenAI(
         model=settings.openai_model,
-        api_key=settings.openai_api_key,
+        api_key=settings.openai_api_key,  # type: ignore[arg-type]
         temperature=0.0,  # deterministic judging
     )
 

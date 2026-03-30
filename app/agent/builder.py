@@ -26,6 +26,8 @@ IMPORTANT — Dependency flow:
     NOT: agent nodes -> services/  (that would bypass MCP entirely)
 """
 
+from typing import Any
+
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, StateGraph
 
@@ -54,7 +56,7 @@ def should_continue_after_human(state: ReviewState) -> str:
         return END  # No human input yet — return current state (paused)
 
 
-def build_review_graph() -> StateGraph:
+def build_review_graph() -> Any:
     """Build and compile the code review workflow graph.
 
     The flow:

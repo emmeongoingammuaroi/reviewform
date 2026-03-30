@@ -9,7 +9,10 @@ This module answers the questions an eval framework needs to answer:
 All queries are async and return dicts ready for API serialization.
 """
 
+from __future__ import annotations
+
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -20,7 +23,7 @@ from app.db.models import EvalLog
 logger = get_logger(__name__)
 
 
-async def summary_by_node(db: AsyncSession) -> list[dict]:
+async def summary_by_node(db: AsyncSession) -> list[dict[str, Any]]:
     """Average score and latency grouped by node — the original /eval/summary."""
     stmt = (
         select(
@@ -49,7 +52,7 @@ async def score_trend(
     *,
     days: int = 30,
     bucket: str = "day",
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Score trend over time — daily or weekly buckets.
 
     Returns time series: [{date, avg_score, avg_latency_ms, count}, ...]
@@ -87,7 +90,7 @@ async def score_trend(
     ]
 
 
-async def score_distribution(db: AsyncSession) -> dict:
+async def score_distribution(db: AsyncSession) -> dict[str, Any]:
     """Score distribution in buckets — how many reviews fall in each quality tier.
 
     Returns: {
@@ -137,7 +140,7 @@ async def regression_check(
     *,
     window: int = 10,
     threshold: float = 0.1,
-) -> dict:
+) -> dict[str, Any]:
     """Compare recent scores against historical baseline to detect regressions.
 
     Compares the last `window` scored reviews against all prior reviews.
@@ -204,7 +207,7 @@ async def regression_check(
     }
 
 
-async def full_report(db: AsyncSession) -> dict:
+async def full_report(db: AsyncSession) -> dict[str, Any]:
     """Generate a complete evaluation report combining all metrics.
 
     This is the single endpoint that answers: "How is our review quality?"

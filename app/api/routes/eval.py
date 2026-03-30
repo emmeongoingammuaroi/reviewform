@@ -7,6 +7,7 @@ Now integrates with the eval framework:
 
 import json
 import uuid
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
@@ -30,7 +31,7 @@ async def list_eval_logs(
     session_id: uuid.UUID | None = None,
     limit: int = 50,
     db: AsyncSession = Depends(get_db),
-):
+) -> list[dict[str, Any]]:
     """List eval logs, optionally filtered by session."""
     stmt = select(EvalLog).order_by(EvalLog.created_at.desc()).limit(limit)
     if session_id:
@@ -67,7 +68,7 @@ async def list_eval_logs(
 async def score_eval_log(
     request: EvalScoreRequest,
     db: AsyncSession = Depends(get_db),
-):
+) -> dict[str, Any]:
     """Score an eval log entry (manual evaluation)."""
     result = await db.execute(select(EvalLog).where(EvalLog.id == request.eval_id))
     log = result.scalar_one_or_none()
@@ -98,7 +99,7 @@ async def auto_score_eval_log(
     eval_id: uuid.UUID,
     use_llm_judge: bool = Query(default=True, description="Include LLM-as-judge (costs tokens)"),
     db: AsyncSession = Depends(get_db),
-):
+) -> dict[str, Any]:
     """Run automated scoring (heuristic + optional LLM-as-judge) on an eval log.
 
     This is the key differentiator: automated scoring that can run at scale
@@ -153,7 +154,7 @@ async def auto_score_eval_log(
 
 
 @router.get("/summary")
-async def eval_summary(db: AsyncSession = Depends(get_db)):
+async def eval_summary(db: AsyncSession = Depends(get_db)) -> list[dict[str, Any]]:
     """Get aggregate eval metrics — average score by node."""
     return await report.summary_by_node(db)
 
@@ -163,13 +164,13 @@ async def eval_trend(
     days: int = Query(default=30, ge=1, le=365),
     bucket: str = Query(default="day", pattern="^(day|week)$"),
     db: AsyncSession = Depends(get_db),
-):
+) -> list[dict[str, Any]]:
     """Score trend over time — track model improvement or regression."""
     return await report.score_trend(db, days=days, bucket=bucket)
 
 
 @router.get("/distribution")
-async def eval_distribution(db: AsyncSession = Depends(get_db)):
+async def eval_distribution(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     """Score distribution across quality tiers (excellent/good/fair/poor)."""
     return await report.score_distribution(db)
 
@@ -179,12 +180,12 @@ async def eval_regression(
     window: int = Query(default=10, ge=2, le=100),
     threshold: float = Query(default=0.1, ge=0.01, le=0.5),
     db: AsyncSession = Depends(get_db),
-):
+) -> dict[str, Any]:
     """Check if recent review scores have regressed compared to historical baseline."""
     return await report.regression_check(db, window=window, threshold=threshold)
 
 
 @router.get("/report")
-async def eval_full_report(db: AsyncSession = Depends(get_db)):
+async def eval_full_report(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     """Full evaluation report — summary, trends, distribution, and regression check."""
     return await report.full_report(db)

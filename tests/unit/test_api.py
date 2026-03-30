@@ -1,5 +1,8 @@
 """Unit tests for API routes."""
 
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from httpx import ASGITransport, AsyncClient
 
@@ -38,12 +41,12 @@ async def test_auth_token_missing_user_id(client):
 
 @pytest.mark.asyncio
 async def test_review_requires_auth(client):
-    """POST /reviews/ without auth should return 403."""
+    """POST /reviews/ without auth should return 401."""
     response = await client.post(
         "/api/v1/reviews/",
         json={"input_type": "snippet", "content": "print('hello')"},
     )
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 
 @pytest.mark.asyncio
@@ -62,14 +65,37 @@ async def test_review_invalid_pr_url(client, auth_headers):
 async def test_review_valid_pr_url_format(client, auth_headers):
     """POST /reviews/ with valid PR format should pass schema validation.
 
-    Note: The actual review will fail because the graph needs MCP + DB,
-    but the schema validation should pass (no 422).
+    We mock the DB (via dependency override) and graph so the test only
+    verifies that a valid PR URL does not trigger a 422 validation error.
     """
-    response = await client.post(
-        "/api/v1/reviews/",
-        headers=auth_headers,
-        json={"input_type": "github_pr", "content": "owner/repo/pull/123"},
-    )
-    # Should NOT be a 422 validation error — it may be 500 from graph execution
-    # but the input validation passed
-    assert response.status_code != 422
+    mock_db = AsyncMock()
+    # Mock the ReviewSession so created_at has a real datetime
+    mock_db.add = MagicMock()
+    mock_graph_result = {
+        "summary": "Looks good",
+        "issues": [],
+        "standards": [],
+    }
+
+    from app.db.base import get_db
+
+    app.dependency_overrides[get_db] = lambda: mock_db
+
+    mock_session = MagicMock()
+    mock_session.created_at = datetime.now(UTC)
+
+    try:
+        with (
+            patch("app.api.routes.review.review_graph") as mock_graph,
+            patch("app.api.routes.review.ReviewSession", return_value=mock_session),
+        ):
+            mock_graph.ainvoke = AsyncMock(return_value=mock_graph_result)
+            response = await client.post(
+                "/api/v1/reviews/",
+                headers=auth_headers,
+                json={"input_type": "github_pr", "content": "owner/repo/pull/123"},
+            )
+        # Should NOT be a 422 validation error
+        assert response.status_code != 422
+    finally:
+        app.dependency_overrides.clear()

@@ -1,5 +1,7 @@
 """GitHub service — fetches PR diffs via the GitHub API."""
 
+from typing import Any
+
 import httpx
 
 from app.core.config import settings
@@ -10,7 +12,7 @@ logger = get_logger(__name__)
 GITHUB_API = "https://api.github.com"
 
 
-async def fetch_pr_diff(pr_ref: str) -> dict:
+async def fetch_pr_diff(pr_ref: str) -> dict[str, Any]:
     """Fetch a PR diff from GitHub.
 
     Args:

@@ -1,7 +1,10 @@
 """Database models for review sessions and eval logs."""
 
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import DateTime, Float, String, Text, func
 from sqlalchemy.dialects.postgresql import JSON, UUID
@@ -44,7 +47,7 @@ class EvalLog(Base):
     score_method: Mapped[str | None] = mapped_column(
         String(50)
     )  # "manual", "heuristic", "heuristic+llm"
-    heuristic_scores: Mapped[dict | None] = mapped_column(JSON)  # breakdown from heuristic scorer
-    llm_judge_scores: Mapped[dict | None] = mapped_column(JSON)  # breakdown from LLM-as-judge
+    heuristic_scores: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    llm_judge_scores: Mapped[dict[str, Any] | None] = mapped_column(JSON)
     latency_ms: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

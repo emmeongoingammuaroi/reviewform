@@ -11,6 +11,7 @@ are injected as context, making this the "Augmented Generation" part of RAG.
 
 import json
 import time
+from typing import Any
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
@@ -65,7 +66,7 @@ def _build_review_prompt(code: str, standards: list[str], language: str | None) 
     return "\n".join(parts)
 
 
-async def review_code(state: ReviewState) -> dict:
+async def review_code(state: ReviewState) -> dict[str, Any]:
     """Send code + standards to gpt-4o and parse the structured response."""
     code = state["code"]
     standards = state.get("standards", [])
@@ -75,7 +76,7 @@ async def review_code(state: ReviewState) -> dict:
 
     llm = ChatOpenAI(
         model=settings.openai_model,
-        api_key=settings.openai_api_key,
+        api_key=settings.openai_api_key,  # type: ignore[arg-type]
         temperature=0.1,  # Low temperature for consistent, factual reviews
     )
 

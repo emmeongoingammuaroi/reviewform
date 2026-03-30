@@ -12,6 +12,8 @@ This node delegates to app.eval.logger — the eval framework owns persistence.
 Scores are assigned automatically via scorer.py or manually via POST /eval/score.
 """
 
+from typing import Any
+
 from app.agent.state import ReviewState
 from app.core.logging import get_logger
 from app.eval.logger import log_review_eval
@@ -19,7 +21,7 @@ from app.eval.logger import log_review_eval
 logger = get_logger(__name__)
 
 
-async def log_eval(state: ReviewState) -> dict:
+async def log_eval(state: ReviewState) -> dict[str, Any]:
     """Persist the review results to the eval_logs table.
 
     Delegates to the eval framework's logger so the same persistence
@@ -31,7 +33,7 @@ async def log_eval(state: ReviewState) -> dict:
         standards=state.get("standards", []),
         language=state.get("language"),
         raw_review=state.get("raw_review", ""),
-        issues=state.get("issues", []),
+        issues=state.get("issues", []),  # type: ignore[arg-type]
         llm_latency_ms=state.get("llm_latency_ms"),
     )
 

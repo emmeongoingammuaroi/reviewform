@@ -12,6 +12,8 @@ The dependency flow is:
     this node → mcp_client → (SSE) → mcp_server → services/qdrant.py → Qdrant
 """
 
+from typing import Any
+
 from app.agent import mcp_client
 from app.agent.state import ReviewState
 from app.core.logging import get_logger
@@ -19,7 +21,7 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 
-async def retrieve_standards(state: ReviewState) -> dict:
+async def retrieve_standards(state: ReviewState) -> dict[str, Any]:
     """Query coding standards via MCP server's Qdrant search tool.
 
     Uses the code snippet as the search query to find semantically similar

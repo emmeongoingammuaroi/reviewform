@@ -4,13 +4,15 @@ Takes the classified issues and produces a clean, structured summary.
 This is a pure data transformation — no LLM call, no external service.
 """
 
+from typing import Any
+
 from app.agent.state import ReviewState
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-async def format_response(state: ReviewState) -> dict:
+async def format_response(state: ReviewState) -> dict[str, Any]:
     """Format the final review summary with issue counts by severity."""
     issues = state.get("issues", [])
     existing_summary = state.get("summary", "")

@@ -1,6 +1,7 @@
 """Review API routes — the main entry point for code reviews."""
 
 import uuid
+from typing import Any
 
 import structlog
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -19,9 +20,9 @@ logger = structlog.get_logger(__name__)
 @router.post("/", response_model=ReviewResponse, status_code=status.HTTP_201_CREATED)
 async def create_review(
     request: ReviewRequest,
-    user: dict = Depends(get_current_user),
+    user: dict[str, Any] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-):
+) -> ReviewResponse:
     """Start a new code review.
 
     1. Creates a ReviewSession in the database
@@ -90,9 +91,9 @@ async def create_review(
 async def submit_feedback(
     session_id: uuid.UUID,
     feedback: HumanFeedback,
-    user: dict = Depends(get_current_user),
+    user: dict[str, Any] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-):
+) -> dict[str, Any]:
     """Submit human feedback on a review (human-in-the-loop).
 
     This resumes the LangGraph workflow from the human_review checkpoint.

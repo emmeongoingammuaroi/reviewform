@@ -1,5 +1,7 @@
 """FastAPI dependencies — JWT auth and database session."""
 
+from typing import Any
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
@@ -11,7 +13,7 @@ security = HTTPBearer()
 
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
-) -> dict:
+) -> dict[str, Any]:
     """Validate JWT token and return the user payload.
 
     In a real app, you'd look up the user in the database.

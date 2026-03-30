@@ -16,13 +16,15 @@ For now, this node simply marks the state as awaiting human input.
 The actual interrupt/resume is handled by the graph builder.
 """
 
+from typing import Any
+
 from app.agent.state import ReviewState
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-async def human_review(state: ReviewState) -> dict:
+async def human_review(state: ReviewState) -> dict[str, Any]:
     """Checkpoint node for human review.
 
     This node is reached after the AI review is complete.

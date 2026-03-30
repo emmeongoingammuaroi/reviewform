@@ -26,7 +26,7 @@ def _get_qdrant() -> AsyncQdrantClient:
 def _get_embeddings() -> OpenAIEmbeddings:
     global _embeddings
     if _embeddings is None:
-        _embeddings = OpenAIEmbeddings(api_key=settings.openai_api_key)
+        _embeddings = OpenAIEmbeddings(api_key=settings.openai_api_key)  # type: ignore[arg-type]
     return _embeddings
 
 
@@ -47,7 +47,7 @@ async def search_standards(query: str, limit: int = 5) -> list[str]:
     query_vector = await embeddings.aembed_query(query)
 
     # Search Qdrant
-    results = await client.search(
+    results = await client.search(  # type: ignore[attr-defined]
         collection_name=settings.qdrant_collection,
         query_vector=query_vector,
         limit=limit,

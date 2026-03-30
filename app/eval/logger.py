@@ -6,7 +6,10 @@ Extracted from the log_eval graph node so that:
 3. Other callers (batch eval, CI pipelines) can log without the graph
 """
 
+from __future__ import annotations
+
 import uuid
+from typing import Any
 
 from app.core.logging import get_logger
 from app.db.base import async_session_factory
@@ -22,7 +25,7 @@ async def log_review_eval(
     standards: list[str],
     language: str | None,
     raw_review: str,
-    issues: list[dict],
+    issues: list[dict[str, Any]],
     llm_latency_ms: float | None,
 ) -> EvalLog | None:
     """Persist a review result to the eval_logs table.

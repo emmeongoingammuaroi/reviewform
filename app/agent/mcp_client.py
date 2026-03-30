@@ -18,6 +18,8 @@ This module provides `call_tool()` — the single function that agent nodes
 use to invoke MCP tools. It handles connection lifecycle automatically.
 """
 
+from typing import Any
+
 from mcp import ClientSession
 from mcp.client.sse import sse_client
 
@@ -27,7 +29,7 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 
-async def call_tool(tool_name: str, arguments: dict) -> str:
+async def call_tool(tool_name: str, arguments: dict[str, Any]) -> str:
     """Call an MCP tool and return the text result.
 
     This connects to the MCP server via SSE, invokes the named tool,
@@ -56,7 +58,7 @@ async def call_tool(tool_name: str, arguments: dict) -> str:
             result = await session.call_tool(tool_name, arguments)
 
     if result.isError:
-        error_text = result.content[0].text if result.content else "Unknown error"
+        error_text = result.content[0].text if result.content else "Unknown error"  # type: ignore[union-attr]
         logger.error("mcp_client.tool_error", tool=tool_name, error=error_text)
         raise RuntimeError(f"MCP tool '{tool_name}' failed: {error_text}")
 
@@ -73,7 +75,7 @@ async def call_tool(tool_name: str, arguments: dict) -> str:
     return response_text
 
 
-async def fetch_github_pr_diff(pr_ref: str) -> dict:
+async def fetch_github_pr_diff(pr_ref: str) -> dict[str, str]:
     """Convenience wrapper: fetch a GitHub PR diff via MCP.
 
     Returns:

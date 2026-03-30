@@ -1,5 +1,6 @@
 """FastAPI application entrypoint."""
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -14,7 +15,7 @@ logger = get_logger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Startup and shutdown events."""
     setup_logging()
     logger.info("app.starting", app_name=settings.app_name)
@@ -46,5 +47,5 @@ app.include_router(eval.router, prefix="/api/v1")
 
 
 @app.get("/health")
-async def health():
+async def health() -> dict[str, str]:
     return {"status": "healthy", "app": settings.app_name}
