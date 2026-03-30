@@ -95,7 +95,7 @@ reviewflow/
 │   │   ├── routes/
 │   │   │   ├── auth.py           # POST /auth/token
 │   │   │   ├── review.py         # POST /reviews, POST /reviews/{id}/feedback
-│   │   │   └── eval.py           # GET /eval/logs, POST /eval/score, GET /eval/summary
+│   │   │   └── eval.py           # Eval endpoints (score, auto-score, trend, report)
 │   │   └── schemas/
 │   │       └── review.py         # Pydantic models + input validation
 │   ├── agent/                    # LangGraph workflow (the AI brain)
@@ -109,6 +109,10 @@ reviewflow/
 │   │       ├── format_response.py # Node 4: Format summary with severity counts
 │   │       ├── human_review.py   # Node 5: Pause for human feedback
 │   │       └── log_eval.py       # Node 6: Persist eval data to PostgreSQL
+│   ├── eval/                     # Evaluation framework
+│   │   ├── logger.py             # Eval persistence (used by log_eval node)
+│   │   ├── scorer.py             # LLM-as-judge + heuristic scoring
+│   │   └── report.py             # Aggregate metrics, trends, regression detection
 │   ├── db/
 │   │   ├── base.py               # Async SQLAlchemy engine + session factory
 │   │   └── models.py             # ReviewSession + EvalLog ORM models
@@ -126,7 +130,8 @@ reviewflow/
 │   ├── env.py                    # Async migration runner
 │   ├── script.py.mako            # Migration template
 │   └── versions/                 # Migration scripts
-│       └── 001_initial_schema.py
+│       ├── 001_initial_schema.py
+│       └── 002_add_eval_scoring_columns.py
 ├── standards_data/
 │   └── standards.json            # Sample coding standards for RAG
 ├── scripts/
@@ -143,6 +148,7 @@ reviewflow/
 ├── docker-compose.override.yml   # Local dev overrides
 ├── alembic.ini                   # Database migrations config
 ├── pyproject.toml                # Dependencies & tool config
+├── .pre-commit-config.yaml       # Pre-commit hooks (ruff lint/format)
 ├── .env.example                  # Environment variable template
 └── .github/workflows/ci.yml     # Lint + test + type-check
 ```
@@ -221,19 +227,52 @@ The MCP server exposes two tools and supports two transport protocols:
 
 ## Evaluation Framework
 
-The `log_eval` graph node writes every LLM interaction to PostgreSQL:
-- **Prompt** sent to the model
-- **Response** received
-- **Latency** in milliseconds
-- **Score** (0.0-1.0, assigned later via API)
-- **Node name** (which graph step produced it)
+The eval framework (`app/eval/`) tracks review quality over time with three components:
 
-This lets you answer: *"Is my agent getting better or worse over time?"*
+### Logging (`logger.py`)
 
-**API endpoints:**
-- `GET /eval/logs` — Browse logged interactions
-- `POST /eval/score` — Score a specific log entry
-- `GET /eval/summary` — Aggregate metrics (avg score, avg latency per node)
+The `log_eval` graph node persists every LLM interaction to PostgreSQL: prompt, response, latency, and the node that produced it.
+
+### Scoring (`scorer.py`)
+
+Two automated scoring methods that can run at scale without human intervention:
+
+**Heuristic scoring** (fast, free, deterministic) — checks structural quality:
+
+- Valid JSON output? Issues found? Suggestions present?
+- Line number references? Severity distribution reasonable?
+- Weighted score across 5 dimensions (0.0-1.0)
+
+**LLM-as-judge scoring** (GPT-4o evaluating the review) — checks semantic quality:
+
+- **Relevance** — Are issues relevant to the actual code?
+- **Accuracy** — Are identified issues genuine problems?
+- **Actionability** — Are suggestions specific and implementable?
+- **Completeness** — Were important issues missed?
+
+**Composite score** = 40% heuristic + 60% LLM judge (graceful fallback to heuristic-only).
+
+### Reporting (`report.py`)
+
+Aggregate metrics that answer *"Is my agent getting better or worse over time?"*:
+
+- **Score trend** — daily/weekly time series of average scores
+- **Score distribution** — how many reviews fall in each quality tier (excellent/good/fair/poor)
+- **Regression detection** — compares recent scores against historical baseline, flags drops
+- **Full report** — all metrics in one endpoint
+
+### API Endpoints
+
+| Endpoint                 | Method | Description                                            |
+| ------------------------ | ------ | ------------------------------------------------------ |
+| `/eval/logs`             | GET    | Browse logged interactions (paginated, filterable)     |
+| `/eval/score`            | POST   | Manually score a log entry (0.0-1.0)                   |
+| `/eval/auto-score/{id}`  | POST   | Run automated scoring (heuristic + optional LLM judge) |
+| `/eval/summary`          | GET    | Average score and latency per node                     |
+| `/eval/trend`            | GET    | Score trend over time (daily/weekly buckets)           |
+| `/eval/distribution`     | GET    | Score distribution across quality tiers                |
+| `/eval/regression`       | GET    | Detect score regressions vs historical baseline        |
+| `/eval/report`           | GET    | Full evaluation report (all metrics combined)          |
 
 ## Quick Start
 
@@ -244,7 +283,7 @@ This lets you answer: *"Is my agent getting better or worse over time?"*
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/your-username/reviewflow.git
+git clone https://github.com/emmeongoingammuaroi/reviewform.git
 cd reviewflow
 cp .env.example .env
 # Edit .env with your API keys
