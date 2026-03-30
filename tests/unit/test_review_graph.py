@@ -1,14 +1,14 @@
 """Unit tests for the review graph nodes."""
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.agent.nodes.format_response import format_response
+import pytest
+
 from app.agent.nodes.fetch_diff import fetch_diff
-from app.agent.nodes.retrieve_standards import retrieve_standards
+from app.agent.nodes.format_response import format_response
 from app.agent.nodes.human_review import human_review
 from app.agent.nodes.log_eval import log_eval
-
+from app.agent.nodes.retrieve_standards import retrieve_standards
 
 # ---------------------------------------------------------------------------
 # format_response tests
@@ -167,7 +167,11 @@ async def test_log_eval_with_data():
     mock_eval_log = MagicMock()
     mock_eval_log.id = "test-eval-id"
 
-    with patch("app.agent.nodes.log_eval.log_review_eval", new_callable=AsyncMock, return_value=mock_eval_log):
+    with patch(
+        "app.agent.nodes.log_eval.log_review_eval",
+        new_callable=AsyncMock,
+        return_value=mock_eval_log,
+    ):
         result = await log_eval(state)
 
     assert result == {}

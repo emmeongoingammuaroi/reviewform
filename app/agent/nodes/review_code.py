@@ -12,16 +12,18 @@ are injected as context, making this the "Augmented Generation" part of RAG.
 import json
 import time
 
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
 
+from app.agent.state import ReviewState
 from app.core.config import settings
 from app.core.logging import get_logger
-from app.agent.state import ReviewState
 
 logger = get_logger(__name__)
 
-SYSTEM_PROMPT = """You are an expert code reviewer. Analyze the provided code and return a JSON object with your findings.
+SYSTEM_PROMPT = """\
+You are an expert code reviewer. \
+Analyze the provided code and return a JSON object with your findings.
 
 You MUST return valid JSON with this exact structure:
 {
@@ -80,13 +82,15 @@ async def review_code(state: ReviewState) -> dict:
     user_prompt = _build_review_prompt(code, standards, language)
 
     start = time.monotonic()
-    response = await llm.ainvoke([
-        SystemMessage(content=SYSTEM_PROMPT),
-        HumanMessage(content=user_prompt),
-    ])
+    response = await llm.ainvoke(
+        [
+            SystemMessage(content=SYSTEM_PROMPT),
+            HumanMessage(content=user_prompt),
+        ]
+    )
     llm_latency_ms = (time.monotonic() - start) * 1000
 
-    raw_review = response.content
+    raw_review = str(response.content)
 
     # Parse the JSON response
     try:

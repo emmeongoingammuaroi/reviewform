@@ -20,7 +20,9 @@ class ReviewSession(Base):
     input_type: Mapped[str] = mapped_column(String(50))  # "snippet" or "github_pr"
     input_content: Mapped[str] = mapped_column(Text)  # raw code or PR URL
     review_output: Mapped[str | None] = mapped_column(Text)
-    status: Mapped[str] = mapped_column(String(50), default="pending")  # pending/reviewing/done/error
+    status: Mapped[str] = mapped_column(
+        String(50), default="pending"
+    )  # pending/reviewing/done/error
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -39,7 +41,9 @@ class EvalLog(Base):
     response: Mapped[str] = mapped_column(Text)
     score: Mapped[float | None] = mapped_column(Float)  # 0.0-1.0, null until scored
     score_reason: Mapped[str | None] = mapped_column(Text)
-    score_method: Mapped[str | None] = mapped_column(String(50))  # "manual", "heuristic", "heuristic+llm"
+    score_method: Mapped[str | None] = mapped_column(
+        String(50)
+    )  # "manual", "heuristic", "heuristic+llm"
     heuristic_scores: Mapped[dict | None] = mapped_column(JSON)  # breakdown from heuristic scorer
     llm_judge_scores: Mapped[dict | None] = mapped_column(JSON)  # breakdown from LLM-as-judge
     latency_ms: Mapped[float | None] = mapped_column(Float)

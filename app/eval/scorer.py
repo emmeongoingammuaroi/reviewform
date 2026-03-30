@@ -14,11 +14,14 @@ This is what turns a log table into an evaluation framework. Two scoring methods
 Together they give you a composite score that tracks model improvement over time.
 """
 
+from __future__ import annotations
+
 import json
 import time
+from typing import Any
 
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
 
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -29,6 +32,7 @@ logger = get_logger(__name__)
 # ---------------------------------------------------------------------------
 # Heuristic scoring
 # ---------------------------------------------------------------------------
+
 
 def _is_valid_json_review(raw_review: str) -> bool:
     """Check if the raw review is parseable JSON with expected structure."""
@@ -46,9 +50,9 @@ def _is_valid_json_review(raw_review: str) -> bool:
 def score_heuristic(
     *,
     raw_review: str,
-    issues: list[dict],
+    issues: list[dict[str, Any]],
     code: str,
-) -> dict:
+) -> dict[str, Any]:
     """Score a review using fast, deterministic heuristics.
 
     Returns:
@@ -114,14 +118,16 @@ def score_heuristic(
 # LLM-as-judge scoring
 # ---------------------------------------------------------------------------
 
-JUDGE_SYSTEM_PROMPT = """You are an expert evaluator of AI code reviews. Score the following code review on four dimensions.
+JUDGE_SYSTEM_PROMPT = """\
+You are an expert evaluator of AI code reviews. \
+Score the following code review on four dimensions.
 
 For each dimension, assign a score from 0.0 to 1.0:
 
-1. **relevance** — Are the issues relevant to the actual code? No hallucinated problems?
-2. **accuracy** — Are the identified issues genuine bugs/problems? Are severity levels appropriate?
-3. **actionability** — Are suggestions specific and implementable? Could a developer act on them immediately?
-4. **completeness** — Did the review catch the important issues? Any obvious problems missed?
+1. **relevance** — Are the issues relevant to the actual code?
+2. **accuracy** — Are the identified issues genuine bugs/problems?
+3. **actionability** — Are suggestions specific and implementable?
+4. **completeness** — Did the review catch the important issues?
 
 Return ONLY valid JSON:
 {
@@ -139,7 +145,7 @@ async def score_llm_judge(
     code: str,
     raw_review: str,
     standards: list[str] | None = None,
-) -> dict:
+) -> dict[str, Any]:
     """Score a review using GPT-4o as a judge.
 
     Returns:
@@ -170,24 +176,28 @@ async def score_llm_judge(
     ]
 
     if standards:
-        user_prompt_parts.extend([
-            "",
-            "## Coding Standards Used",
-            "\n".join(f"- {s[:200]}" for s in standards[:5]),
-        ])
+        user_prompt_parts.extend(
+            [
+                "",
+                "## Coding Standards Used",
+                "\n".join(f"- {s[:200]}" for s in standards[:5]),
+            ]
+        )
 
     user_prompt_parts.append("\nScore this review on the four dimensions.")
 
     start = time.monotonic()
-    response = await llm.ainvoke([
-        SystemMessage(content=JUDGE_SYSTEM_PROMPT),
-        HumanMessage(content="\n".join(user_prompt_parts)),
-    ])
+    response = await llm.ainvoke(
+        [
+            SystemMessage(content=JUDGE_SYSTEM_PROMPT),
+            HumanMessage(content="\n".join(user_prompt_parts)),
+        ]
+    )
     latency_ms = (time.monotonic() - start) * 1000
 
     # Parse judge response
     try:
-        text = response.content.strip()
+        text = str(response.content).strip()
         if text.startswith("```"):
             text = text.split("\n", 1)[1]
             text = text.rsplit("```", 1)[0]
@@ -225,14 +235,15 @@ async def score_llm_judge(
 # Composite scoring
 # ---------------------------------------------------------------------------
 
+
 async def score_review(
     *,
     code: str,
     raw_review: str,
-    issues: list[dict],
+    issues: list[dict[str, Any]],
     standards: list[str] | None = None,
     use_llm_judge: bool = True,
-) -> dict:
+) -> dict[str, Any]:
     """Run both heuristic and (optionally) LLM-as-judge scoring.
 
     Returns:

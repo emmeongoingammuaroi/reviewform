@@ -14,7 +14,6 @@ from qdrant_client.models import Distance, PointStruct, VectorParams
 
 from app.core.config import settings
 
-
 STANDARDS_DIR = Path(__file__).parent.parent / "standards_data"
 
 
@@ -65,43 +64,79 @@ def _create_sample_standards(path: Path):
     """Create a sample coding standards file for demonstration."""
     sample_standards = [
         {
-            "text": "Functions should have a single responsibility. If a function does more than one thing, split it into smaller functions.",
+            "text": (
+                "Functions should have a single responsibility."
+                " If a function does more than one thing,"
+                " split it into smaller functions."
+            ),
             "category": "clean-code",
         },
         {
-            "text": "Always validate user input at API boundaries. Never trust data from external sources without sanitization.",
+            "text": (
+                "Always validate user input at API boundaries."
+                " Never trust data from external sources"
+                " without sanitization."
+            ),
             "category": "security",
         },
         {
-            "text": "Use parameterized queries for database operations. Never concatenate user input into SQL strings.",
+            "text": (
+                "Use parameterized queries for database operations."
+                " Never concatenate user input into SQL strings."
+            ),
             "category": "security",
         },
         {
-            "text": "Handle exceptions explicitly. Avoid bare except clauses. Log the error with context before re-raising or returning an error response.",
+            "text": (
+                "Handle exceptions explicitly. Avoid bare except clauses."
+                " Log the error with context before re-raising"
+                " or returning an error response."
+            ),
             "category": "error-handling",
         },
         {
-            "text": "Use type hints for function signatures in Python. This improves readability and enables static analysis tools.",
+            "text": (
+                "Use type hints for function signatures in Python."
+                " This improves readability and enables"
+                " static analysis tools."
+            ),
             "category": "python",
         },
         {
-            "text": "Async functions that perform I/O should use async libraries (httpx, asyncpg) instead of blocking calls (requests, psycopg2).",
+            "text": (
+                "Async functions that perform I/O should use"
+                " async libraries (httpx, asyncpg) instead of"
+                " blocking calls (requests, psycopg2)."
+            ),
             "category": "python-async",
         },
         {
-            "text": "API endpoints should return consistent response shapes. Use Pydantic models to enforce response schemas.",
+            "text": (
+                "API endpoints should return consistent response shapes."
+                " Use Pydantic models to enforce response schemas."
+            ),
             "category": "api-design",
         },
         {
-            "text": "Avoid deeply nested code. Use early returns to reduce indentation and improve readability.",
+            "text": (
+                "Avoid deeply nested code. Use early returns"
+                " to reduce indentation and improve readability."
+            ),
             "category": "clean-code",
         },
         {
-            "text": "Database queries in loops (N+1 problem) should be replaced with batch queries or JOINs.",
+            "text": (
+                "Database queries in loops (N+1 problem)"
+                " should be replaced with batch queries or JOINs."
+            ),
             "category": "performance",
         },
         {
-            "text": "Sensitive data (API keys, passwords, tokens) must never be hardcoded. Use environment variables or secret management services.",
+            "text": (
+                "Sensitive data (API keys, passwords, tokens)"
+                " must never be hardcoded. Use environment variables"
+                " or secret management services."
+            ),
             "category": "security",
         },
     ]

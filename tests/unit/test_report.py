@@ -1,17 +1,16 @@
 """Unit tests for the eval report module — aggregate metrics and trend queries."""
 
-import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from app.eval.report import (
-    summary_by_node,
-    score_trend,
-    score_distribution,
-    regression_check,
     full_report,
+    regression_check,
+    score_distribution,
+    score_trend,
+    summary_by_node,
 )
 
 
@@ -72,7 +71,7 @@ async def test_summary_by_node_empty():
 @pytest.mark.asyncio
 async def test_score_trend():
     """Should return time-series data bucketed by day."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     mock_row = MagicMock()
     mock_row.period = now

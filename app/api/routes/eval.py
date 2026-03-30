@@ -12,10 +12,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.schemas.review import EvalScoreRequest
 from app.db.base import get_db
 from app.db.models import EvalLog
-from app.api.schemas.review import EvalScoreRequest
-from app.eval import scorer, report
+from app.eval import report, scorer
 
 router = APIRouter(prefix="/eval", tags=["eval"])
 
@@ -80,7 +80,12 @@ async def score_eval_log(
     log.score_method = "manual"
     await db.commit()
 
-    return {"id": str(log.id), "score": log.score, "score_method": "manual", "score_reason": log.score_reason}
+    return {
+        "id": str(log.id),
+        "score": log.score,
+        "score_method": "manual",
+        "score_reason": log.score_reason,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -126,7 +131,9 @@ async def auto_score_eval_log(
 
     log.score = scores["composite_score"]
     log.score_method = scores["score_method"]
-    log.score_reason = scores.get("llm_judge", {}).get("reasoning") if scores.get("llm_judge") else None
+    log.score_reason = (
+        scores.get("llm_judge", {}).get("reasoning") if scores.get("llm_judge") else None
+    )
     log.heuristic_scores = scores["heuristic"]
     log.llm_judge_scores = scores.get("llm_judge")
     await db.commit()

@@ -1,37 +1,38 @@
 """Unit tests for the eval scorer — heuristic and LLM-as-judge scoring."""
 
 import json
-from unittest.mock import AsyncMock, patch, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from app.eval.scorer import score_heuristic, score_llm_judge, score_review
-
 
 # ---------------------------------------------------------------------------
 # Heuristic scorer tests
 # ---------------------------------------------------------------------------
 
 
-VALID_REVIEW = json.dumps({
-    "issues": [
-        {
-            "severity": "critical",
-            "category": "security",
-            "line": 5,
-            "description": "Using eval() on user input",
-            "suggestion": "Use ast.literal_eval() instead",
-        },
-        {
-            "severity": "warning",
-            "category": "style",
-            "line": 10,
-            "description": "Function too long",
-            "suggestion": "Extract helper functions",
-        },
-    ],
-    "summary": "Security issue found with eval usage.",
-})
+VALID_REVIEW = json.dumps(
+    {
+        "issues": [
+            {
+                "severity": "critical",
+                "category": "security",
+                "line": 5,
+                "description": "Using eval() on user input",
+                "suggestion": "Use ast.literal_eval() instead",
+            },
+            {
+                "severity": "warning",
+                "category": "style",
+                "line": 10,
+                "description": "Function too long",
+                "suggestion": "Extract helper functions",
+            },
+        ],
+        "summary": "Security issue found with eval usage.",
+    }
+)
 
 CODE = "def process(data):\n    return eval(data)"
 
@@ -72,7 +73,12 @@ def test_heuristic_no_suggestions():
 def test_heuristic_no_line_numbers():
     """Issues without line numbers should lose the line numbers score."""
     issues = [
-        {"severity": "critical", "category": "security", "description": "Bad", "suggestion": "Fix it"},
+        {
+            "severity": "critical",
+            "category": "security",
+            "description": "Bad",
+            "suggestion": "Fix it",
+        },
     ]
     raw = json.dumps({"issues": issues, "summary": "Problems found."})
 
@@ -101,8 +107,20 @@ def test_heuristic_clean_code_review():
 def test_heuristic_single_severity():
     """All issues with same severity should get partial distribution score."""
     issues = [
-        {"severity": "critical", "category": "security", "line": 1, "description": "A", "suggestion": "Fix A"},
-        {"severity": "critical", "category": "logic", "line": 2, "description": "B", "suggestion": "Fix B"},
+        {
+            "severity": "critical",
+            "category": "security",
+            "line": 1,
+            "description": "A",
+            "suggestion": "Fix A",
+        },
+        {
+            "severity": "critical",
+            "category": "logic",
+            "line": 2,
+            "description": "B",
+            "suggestion": "Fix B",
+        },
     ]
     raw = json.dumps({"issues": issues, "summary": "Multiple critical issues."})
 
@@ -138,13 +156,15 @@ def test_heuristic_total_is_weighted_average():
 @pytest.mark.asyncio
 async def test_llm_judge_parses_response():
     """LLM judge should parse a valid judge response and compute scores."""
-    judge_response = json.dumps({
-        "relevance": 0.9,
-        "accuracy": 0.8,
-        "actionability": 0.85,
-        "completeness": 0.7,
-        "reasoning": "Good review with minor gaps.",
-    })
+    judge_response = json.dumps(
+        {
+            "relevance": 0.9,
+            "accuracy": 0.8,
+            "actionability": 0.85,
+            "completeness": 0.7,
+            "reasoning": "Good review with minor gaps.",
+        }
+    )
 
     mock_llm = AsyncMock()
     mock_llm.ainvoke.return_value = MagicMock(content=judge_response)
@@ -175,16 +195,21 @@ async def test_llm_judge_handles_parse_error():
 @pytest.mark.asyncio
 async def test_llm_judge_with_standards():
     """LLM judge should include standards in the prompt when provided."""
-    judge_response = json.dumps({
-        "relevance": 0.9, "accuracy": 0.9, "actionability": 0.9,
-        "completeness": 0.9, "reasoning": "Great.",
-    })
+    judge_response = json.dumps(
+        {
+            "relevance": 0.9,
+            "accuracy": 0.9,
+            "actionability": 0.9,
+            "completeness": 0.9,
+            "reasoning": "Great.",
+        }
+    )
 
     mock_llm = AsyncMock()
     mock_llm.ainvoke.return_value = MagicMock(content=judge_response)
 
     with patch("app.eval.scorer.ChatOpenAI", return_value=mock_llm):
-        result = await score_llm_judge(
+        await score_llm_judge(
             code=CODE,
             raw_review=VALID_REVIEW,
             standards=["Always validate input", "Never use eval()"],
@@ -205,10 +230,15 @@ async def test_llm_judge_with_standards():
 @pytest.mark.asyncio
 async def test_score_review_composite():
     """Composite score should blend heuristic (40%) and LLM judge (60%)."""
-    judge_response = json.dumps({
-        "relevance": 1.0, "accuracy": 1.0, "actionability": 1.0,
-        "completeness": 1.0, "reasoning": "Perfect.",
-    })
+    judge_response = json.dumps(
+        {
+            "relevance": 1.0,
+            "accuracy": 1.0,
+            "actionability": 1.0,
+            "completeness": 1.0,
+            "reasoning": "Perfect.",
+        }
+    )
 
     mock_llm = AsyncMock()
     mock_llm.ainvoke.return_value = MagicMock(content=judge_response)
@@ -217,7 +247,10 @@ async def test_score_review_composite():
 
     with patch("app.eval.scorer.ChatOpenAI", return_value=mock_llm):
         result = await score_review(
-            code=CODE, raw_review=VALID_REVIEW, issues=issues, use_llm_judge=True,
+            code=CODE,
+            raw_review=VALID_REVIEW,
+            issues=issues,
+            use_llm_judge=True,
         )
 
     assert result["score_method"] == "heuristic+llm"
@@ -234,7 +267,10 @@ async def test_score_review_heuristic_only():
     issues = json.loads(VALID_REVIEW)["issues"]
 
     result = await score_review(
-        code=CODE, raw_review=VALID_REVIEW, issues=issues, use_llm_judge=False,
+        code=CODE,
+        raw_review=VALID_REVIEW,
+        issues=issues,
+        use_llm_judge=False,
     )
 
     assert result["score_method"] == "heuristic"
@@ -252,7 +288,10 @@ async def test_score_review_llm_failure_fallback():
 
     with patch("app.eval.scorer.ChatOpenAI", return_value=mock_llm):
         result = await score_review(
-            code=CODE, raw_review=VALID_REVIEW, issues=issues, use_llm_judge=True,
+            code=CODE,
+            raw_review=VALID_REVIEW,
+            issues=issues,
+            use_llm_judge=True,
         )
 
     assert result["score_method"] == "heuristic"
