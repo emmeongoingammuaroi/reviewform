@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, Float, String, Text, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -39,5 +39,8 @@ class EvalLog(Base):
     response: Mapped[str] = mapped_column(Text)
     score: Mapped[float | None] = mapped_column(Float)  # 0.0-1.0, null until scored
     score_reason: Mapped[str | None] = mapped_column(Text)
+    score_method: Mapped[str | None] = mapped_column(String(50))  # "manual", "heuristic", "heuristic+llm"
+    heuristic_scores: Mapped[dict | None] = mapped_column(JSON)  # breakdown from heuristic scorer
+    llm_judge_scores: Mapped[dict | None] = mapped_column(JSON)  # breakdown from LLM-as-judge
     latency_ms: Mapped[float | None] = mapped_column(Float)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

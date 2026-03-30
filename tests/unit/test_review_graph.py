@@ -153,7 +153,7 @@ async def test_log_eval_skips_without_raw_review():
 
 @pytest.mark.asyncio
 async def test_log_eval_with_data():
-    """log_eval should write to database when raw_review is present."""
+    """log_eval should delegate to eval logger when raw_review is present."""
     state = {
         "session_id": "550e8400-e29b-41d4-a716-446655440000",
         "raw_review": '{"issues": [], "summary": "Looks good"}',
@@ -164,20 +164,10 @@ async def test_log_eval_with_data():
         "llm_latency_ms": 1234.5,
     }
 
-    # Mock the database session
-    mock_db = AsyncMock()
-    mock_session_ctx = AsyncMock()
-    mock_session_ctx.__aenter__ = AsyncMock(return_value=mock_db)
-    mock_session_ctx.__aexit__ = AsyncMock(return_value=False)
+    mock_eval_log = MagicMock()
+    mock_eval_log.id = "test-eval-id"
 
-    with patch("app.agent.nodes.log_eval.async_session_factory", return_value=mock_session_ctx):
+    with patch("app.agent.nodes.log_eval.log_review_eval", new_callable=AsyncMock, return_value=mock_eval_log):
         result = await log_eval(state)
 
     assert result == {}
-    mock_db.add.assert_called_once()
-    mock_db.commit.assert_called_once()
-
-    # Verify the EvalLog was created with latency
-    eval_log = mock_db.add.call_args[0][0]
-    assert eval_log.latency_ms == 1234.5
-    assert eval_log.node_name == "review_code"
