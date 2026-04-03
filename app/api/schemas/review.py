@@ -11,7 +11,9 @@ import uuid
 from datetime import datetime
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
+
+from app.core.config import settings
 
 
 class InputType(StrEnum):
@@ -42,6 +44,16 @@ class ReviewRequest(BaseModel):
         min_length=1,
     )
     language: str | None = Field(None, description="Programming language hint (e.g. 'python')")
+
+    @field_validator("content")
+    @classmethod
+    def validate_content_size(cls, v: str) -> str:
+        if len(v) > settings.max_content_size:
+            raise ValueError(
+                f"Content too large ({len(v)} chars). "
+                f"Maximum allowed: {settings.max_content_size} chars"
+            )
+        return v
 
     @model_validator(mode="after")
     def validate_content_matches_type(self) -> ReviewRequest:

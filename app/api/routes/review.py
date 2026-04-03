@@ -1,5 +1,6 @@
 """Review API routes — the main entry point for code reviews."""
 
+import asyncio
 import uuid
 from typing import Any
 
@@ -9,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agent.builder import review_graph
 from app.api.schemas.review import HumanFeedback, ReviewRequest, ReviewResponse
+from app.core.config import settings
 from app.core.dependencies import get_current_user
 from app.db.base import get_db
 from app.db.models import ReviewSession
@@ -63,7 +65,18 @@ async def create_review(
     config = {"configurable": {"thread_id": session_id}}
 
     try:
-        result = await review_graph.ainvoke(initial_state, config=config)
+        result = await asyncio.wait_for(
+            review_graph.ainvoke(initial_state, config=config),
+            timeout=settings.review_timeout_seconds,
+        )
+    except TimeoutError:
+        logger.error("review.timeout", session_id=session_id)
+        db_session.status = "error"
+        await db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="Review timed out — try a smaller code snippet",
+        )
     except Exception as e:
         logger.error("review.failed", error=str(e))
         db_session.status = "error"

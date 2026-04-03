@@ -23,6 +23,8 @@ class Settings(BaseSettings):
 
     # PostgreSQL
     database_url: str
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
 
     # Qdrant
     qdrant_host: str = "localhost"
@@ -34,6 +36,19 @@ class Settings(BaseSettings):
 
     # MCP Server (the agent connects to this as a client)
     mcp_server_url: str = "http://localhost:8001"
+
+    # CORS
+    allowed_origins: list[str] = [
+        "http://localhost:3000",
+        "http://localhost:5173",
+    ]
+
+    # Rate limiting
+    rate_limit: str = "20/minute"
+
+    # Request limits
+    max_content_size: int = 100_000  # ~100KB max code snippet
+    review_timeout_seconds: int = 300  # 5 min max for LLM review
 
 
 settings = Settings()

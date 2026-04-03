@@ -24,6 +24,7 @@ _env_test = Path(__file__).resolve().parent.parent / ".env.test"
 load_dotenv(_env_test, override=True)
 
 from app.core.config import settings  # noqa: E402
+from app.db.base import async_session_factory, get_db  # noqa: E402
 from app.main import app  # noqa: E402
 
 # ---------------------------------------------------------------------------
@@ -52,6 +53,36 @@ def auth_token(test_user: dict) -> str:
 def auth_headers(auth_token: str) -> dict:
     """HTTP headers with a valid Bearer token."""
     return {"Authorization": f"Bearer {auth_token}"}
+
+
+# ---------------------------------------------------------------------------
+# Database fixtures — isolated per test via savepoint rollback
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+async def db_session():
+    """Database session that rolls back after each test.
+
+    Uses nested transactions (savepoints) so each test gets a clean slate
+    without needing to drop/recreate tables.
+    """
+    async with async_session_factory() as session:
+        async with session.begin():
+            yield session
+            await session.rollback()
+
+
+@pytest.fixture
+def _override_db(db_session):  # type: ignore[no-untyped-def]
+    """Override FastAPI's get_db dependency with the test session."""
+
+    async def _get_test_db():  # type: ignore[no-untyped-def]
+        yield db_session
+
+    app.dependency_overrides[get_db] = _get_test_db
+    yield
+    app.dependency_overrides.pop(get_db, None)
 
 
 # ---------------------------------------------------------------------------
