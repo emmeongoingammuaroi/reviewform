@@ -81,7 +81,8 @@ async def create_review(
         logger.error("review.failed", error=str(e))
         db_session.status = "error"
         await db.commit()
-        raise HTTPException(status_code=500, detail=f"Review failed: {e}")
+        detail = f"Review failed: {e}" if settings.debug else "Review failed"
+        raise HTTPException(status_code=500, detail=detail)
 
     # Update session with results
     db_session.review_output = result.get("summary", "")
