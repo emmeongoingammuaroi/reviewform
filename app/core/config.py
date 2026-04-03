@@ -43,9 +43,6 @@ class Settings(BaseSettings):
         "http://localhost:5173",
     ]
 
-    # Rate limiting
-    rate_limit: str = "20/minute"
-
     # Request limits
     max_content_size: int = 100_000  # ~100KB max code snippet
     review_timeout_seconds: int = 300  # 5 min max for LLM review

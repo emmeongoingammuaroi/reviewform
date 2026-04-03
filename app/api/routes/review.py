@@ -118,13 +118,22 @@ async def submit_feedback(
     config = {"configurable": {"thread_id": str(session_id)}}
 
     # Resume the graph with human feedback injected into state
-    result = await review_graph.ainvoke(
-        {
-            "human_approved": feedback.approved,
-            "human_comments": feedback.comments,
-        },
-        config=config,
-    )
+    try:
+        result = await asyncio.wait_for(
+            review_graph.ainvoke(
+                {
+                    "human_approved": feedback.approved,
+                    "human_comments": feedback.comments,
+                },
+                config=config,
+            ),
+            timeout=settings.review_timeout_seconds,
+        )
+    except TimeoutError:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="Re-review timed out",
+        )
 
     return {
         "session_id": session_id,

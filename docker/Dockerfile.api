@@ -7,19 +7,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
+# Copy dependency spec first (Docker layer caching)
 COPY pyproject.toml ./
-RUN pip install --no-cache-dir -e ".[dev]"
-
-# Copy source code
-COPY . .
 
 # --- Production ---
 FROM base AS production
+RUN pip install --no-cache-dir -e .
+COPY . .
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
 
-# --- Development (with hot reload) ---
+# --- Development (with dev dependencies + hot reload) ---
 FROM base AS development
+RUN pip install --no-cache-dir -e ".[dev]"
+COPY . .
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
