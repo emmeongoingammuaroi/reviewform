@@ -26,6 +26,9 @@ htmlcov/
 # Database
 alembic/versions/*.pyc
 
+# UI (local development only)
+ui/
+
 # OS
 .DS_Store
 Thumbs.db

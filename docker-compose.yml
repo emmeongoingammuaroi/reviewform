@@ -3,18 +3,17 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.api
-      target: development
+      target: production
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:8000"
     env_file:
       - .env
     environment:
-      # Override for Docker networking — "mcp" is the container hostname
-      - MCP_SERVER_URL=http://mcp:8001
-      - DATABASE_URL=postgresql+asyncpg://reviewflow:reviewflow@postgres:5432/reviewflow
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT:-5432}/${POSTGRES_DB}
+      - MCP_SERVER_URL=http://mcp:${MCP_PORT:-8001}
       - QDRANT_HOST=qdrant
-    volumes:
-      - .:/app
+      - QDRANT_PORT=${QDRANT_PORT:-6333}
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
@@ -28,38 +27,42 @@ services:
       context: .
       dockerfile: docker/Dockerfile.mcp
     ports:
-      - "8001:8001"
+      - "${MCP_PORT:-8001}:8001"
     env_file:
       - .env
     environment:
       - QDRANT_HOST=qdrant
+      - QDRANT_PORT=${QDRANT_PORT:-6333}
+    restart: unless-stopped
     depends_on:
       qdrant:
         condition: service_started
 
   postgres:
-    image: postgres:16-alpine
+    image: postgres:${POSTGRES_VERSION:-16-alpine}
     environment:
-      POSTGRES_USER: reviewflow
-      POSTGRES_PASSWORD: reviewflow
-      POSTGRES_DB: reviewflow
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U reviewflow"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   qdrant:
-    image: qdrant/qdrant:latest
+    image: qdrant/qdrant:${QDRANT_VERSION:-latest}
     ports:
-      - "6333:6333"
-      - "6334:6334"
+      - "${QDRANT_PORT:-6333}:6333"
+      - "${QDRANT_GRPC_PORT:-6334}:6334"
     volumes:
       - qdrant_data:/qdrant/storage
+    restart: unless-stopped
 
 volumes:
   postgres_data:

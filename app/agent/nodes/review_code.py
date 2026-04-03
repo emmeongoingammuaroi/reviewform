@@ -74,9 +74,9 @@ async def review_code(state: ReviewState) -> dict[str, Any]:
 
     logger.info("review_code.start", code_length=len(code), num_standards=len(standards))
 
-    llm = ChatOpenAI(
+    llm = ChatOpenAI(  # type: ignore[call-arg]
         model=settings.openai_model,
-        api_key=settings.openai_api_key,  # type: ignore[arg-type]
+        api_key=settings.openai_api_key,
         temperature=0.1,  # Low temperature for consistent, factual reviews
     )
 

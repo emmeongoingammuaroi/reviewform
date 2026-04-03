@@ -161,9 +161,9 @@ async def score_llm_judge(
             "latency_ms": float,
         }
     """
-    llm = ChatOpenAI(
+    llm = ChatOpenAI(  # type: ignore[call-arg]
         model=settings.openai_model,
-        api_key=settings.openai_api_key,  # type: ignore[arg-type]
+        api_key=settings.openai_api_key,
         temperature=0.0,  # deterministic judging
     )
 

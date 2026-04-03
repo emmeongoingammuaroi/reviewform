@@ -3,8 +3,13 @@
 
 services:
   api:
+    build:
+      target: development
     environment:
       - DEBUG=true
-    # Mount source for hot-reload
+    volumes:
+      - .:/app
+
+  mcp:
     volumes:
       - .:/app

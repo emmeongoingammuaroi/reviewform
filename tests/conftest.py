@@ -11,14 +11,20 @@ Usage in tests:
 """
 
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from dotenv import load_dotenv
 from httpx import ASGITransport, AsyncClient
 from jose import jwt
 
-from app.core.config import settings
-from app.main import app
+# Load test env vars BEFORE importing app modules so Settings() picks them up.
+_env_test = Path(__file__).resolve().parent.parent / ".env.test"
+load_dotenv(_env_test, override=True)
+
+from app.core.config import settings  # noqa: E402
+from app.main import app  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Auth fixtures

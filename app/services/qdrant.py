@@ -26,7 +26,7 @@ def _get_qdrant() -> AsyncQdrantClient:
 def _get_embeddings() -> OpenAIEmbeddings:
     global _embeddings
     if _embeddings is None:
-        _embeddings = OpenAIEmbeddings(api_key=settings.openai_api_key)  # type: ignore[arg-type]
+        _embeddings = OpenAIEmbeddings(api_key=settings.openai_api_key)  # type: ignore[call-arg]
     return _embeddings
 
 
